@@ -61,7 +61,7 @@ namespace FinacialBackend.Repository
                     "symbol" => query.IsDescending
                         ? stocks.OrderByDescending(s => s.Symbol)
                         : stocks.OrderBy(s => s.Symbol),
-
+                           
                     "companyname" => query.IsDescending
                         ? stocks.OrderByDescending(s => s.CompanyName) // sorting by multiple query
                         : stocks.OrderBy(s => s.CompanyName),
