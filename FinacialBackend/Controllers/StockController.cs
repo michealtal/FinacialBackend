@@ -3,6 +3,7 @@ using FinacialBackend.Dtos.Stocks;
 using FinacialBackend.Helpers;
 using FinacialBackend.Interfaces;
 using FinacialBackend.Mapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Formats.Asn1;
@@ -22,8 +23,9 @@ namespace FinacialBackend.Controllers
           _context = context;  
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] QueryObject query)
+        [HttpGet]  
+        [Authorize]
+        public async Task<IActionResult> GetAll([FromQuery] QueryObject query) 
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
