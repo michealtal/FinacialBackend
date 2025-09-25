@@ -1,8 +1,10 @@
 ﻿using FinacialBackend.Data;
 using FinacialBackend.Dtos.Comment;
+using FinacialBackend.Helpers;
 using FinacialBackend.Interfaces;
 using FinacialBackend.Model;
 using Microsoft.EntityFrameworkCore;
+
 
 namespace FinacialBackend.Repository
 {
@@ -35,14 +37,25 @@ namespace FinacialBackend.Repository
             return CommentModel;
         }
 
-        public async Task<List<Comment>> GetAllAsync()  
+        public async Task<List<Comment>> GetAllAsync(CommentQueryObject queryObject)  
         {
-            return await _context.Comments.ToListAsync();
+            var comments = _context.Comments.Include(a => a.AppUser).AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(queryObject.Symbol))
+            {
+                comments = comments.Where(s => s.Stock.Symbol == queryObject.Symbol); 
+            };
+            if (queryObject.IsDesecnding == true)
+            {
+                comments = comments.OrderByDescending(c => c.CreatedOn);
+            }
+
+            return await comments.ToListAsync();
         }
 
         public async Task<Comment?> GetByIdAsync(int id)
         {
-            return await _context.Comments.FindAsync(id);
+            return await _context.Comments.Include(a => a.AppUser).FirstOrDefaultAsync(c => c.Id == id);
         }
 
         public async Task<Comment> UpdateAsync(int id, Comment commentModel)

@@ -67,7 +67,7 @@ namespace FinacialBackend
                 .AddEntityFrameworkStores<ApplicationDBContext>();
 
             builder.Services.AddAuthentication(options =>
-            {
+            {        
                 options.DefaultAuthenticateScheme =
                 options.DefaultChallengeScheme =
                 options.DefaultForbidScheme =
@@ -94,6 +94,9 @@ namespace FinacialBackend
             builder.Services.AddScoped<IStockRepository, StockRepository>();
             builder.Services.AddScoped<ICommentRepository, CommentRepository>();
             builder.Services.AddScoped<ITokenService, TokenService>();
+            builder.Services.AddScoped<IPortfolioRepository, PortfolioRepository>();
+            builder.Services.AddScoped<IFMPServices, FMPService>();
+            builder.Services.AddHttpClient<IFMPServices, FMPService>();
 
 
             builder.Services.AddControllers().AddNewtonsoftJson(options =>
@@ -111,6 +114,12 @@ namespace FinacialBackend
             }
 
             app.UseHttpsRedirection();
+
+            app.UseCors(x => x.AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .AllowCredentials()
+                        //.withOrigins("https://localhost:44361") Note this is for when you deploy it is where you wil set your actual domain
+                       .SetIsOriginAllowed(origin => true) );
 
             app.UseAuthentication() ;
 

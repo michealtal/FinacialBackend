@@ -13,7 +13,9 @@ namespace FinacialBackend.Mapper
                 Title = commentModel.Title,
                 Content = commentModel.Content,
                 CreatedOn = commentModel.CreatedOn,
+                CreatedBy = commentModel.AppUser?.UserName ?? "unknown",
                 StockId = commentModel.StockId,
+                AppUserId = commentModel.AppUserId
             };
         }
 
@@ -24,7 +26,7 @@ namespace FinacialBackend.Mapper
                 Title = commentDto.Title,
                 Content = commentDto.Content,
                 StockId = stockId
-            };
+            }; 
         }
 
         public static Comment ToCommentFromUpdate(this UpdateCommentDto commentDto)
