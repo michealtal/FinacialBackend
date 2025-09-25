@@ -31,9 +31,9 @@ namespace FinacialBackend.Controllers
                 return BadRequest(ModelState);
 
             var stock = await _stockRepo.GetAllAsync(query);
-            var stockDto =stock.Select(s => s.ToStockDto());
+            var stockDto =stock.Select(s => s.ToStockDto()).ToList();
 
-            return Ok(stock);
+            return Ok(stockDto);
         }
 
         [HttpGet("{id:int}")]

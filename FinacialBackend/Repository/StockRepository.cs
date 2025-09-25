@@ -36,9 +36,13 @@ namespace FinacialBackend.Repository
 
         public async Task<List<Stock>> GetAllAsync(QueryObject query)
         {
-          var stocks =  _context.Stocks.Include( c => c.Comments).AsQueryable();
+            var stocks = _context.Stocks
+          .Include(c => c.Comments)
+              .ThenInclude(a => a.AppUser)   // load the user for each comment
+          .AsQueryable();
 
-            if(!string.IsNullOrWhiteSpace(query.CompanyName))
+
+            if (!string.IsNullOrWhiteSpace(query.CompanyName))
             {
                 stocks = stocks.Where(s => s.CompanyName.Contains(query.CompanyName));
             }
@@ -75,10 +79,15 @@ namespace FinacialBackend.Repository
             return await stocks.Skip(skipNumber).Take(query.PageSize).ToListAsync();
         }      
 
-        public async Task<Stock?> GetByIdAsync(int id)
+        public async Task<Stock?> GetByIdAsync(int id)     
         {
-            return await _context.Stocks.Include(c => c.Comments).FirstOrDefaultAsync(i => i.Id == id);
+            return await _context.Stocks.Include(c => c.Comments).ThenInclude(a => a.AppUser).FirstOrDefaultAsync(i => i.Id == id);
 
+        }
+
+        public async Task<Stock?> GetBySymbolAsync(string symbol)
+        {
+            return await _context.Stocks.FirstOrDefaultAsync(s => s.Symbol == symbol); 
         }
 
         public Task<bool> StockExist(int id)
