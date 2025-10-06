@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+
 namespace FinacialBackend
 {
     public class Program
@@ -16,16 +17,84 @@ namespace FinacialBackend
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+            // ?? Log connection strings (debugging)
+            foreach (var kv in builder.Configuration.GetSection("ConnectionStrings").GetChildren())
+            {
+                Console.WriteLine($"==> Found connection string key={kv.Key}, value={kv.Value}");
+            }
 
-            builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+            // ========================
+            // Services Configuration
+            // ========================
+
+            // DbContext
+            builder.Services.AddDbContext<ApplicationDBContext>(options =>
+            {
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+            });
+
+            // Identity
+            builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
+            {
+                options.Password.RequireDigit = true;
+                options.Password.RequireLowercase = true;
+                options.Password.RequireUppercase = true;
+                options.Password.RequireNonAlphanumeric = true;
+                options.Password.RequiredLength = 12;
+            })
+            .AddEntityFrameworkStores<ApplicationDBContext>();
+
+            // Authentication & JWT
+            //builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme) if you want it to get from cookies 
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidIssuer = builder.Configuration["JWT:Issuer"],
+                        ValidateAudience = true,
+                        ValidAudience = builder.Configuration["JWT:Audience"],
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(
+                            System.Text.Encoding.UTF8.GetBytes(builder.Configuration["JWT:SigningKey"])
+                        )
+                    };
+                });
+
+            builder.Services.ConfigureApplicationCookie(options =>
+            {
+                options.Events.OnRedirectToLogin = ctx =>
+                {
+                    ctx.Response.StatusCode = 401; // Instead of redirect
+                    return Task.CompletedTask;
+                };
+            });
+
+
+            // Repositories & Services
+            builder.Services.AddScoped<IStockRepository, StockRepository>();
+            builder.Services.AddScoped<ICommentRepository, CommentRepository>();
+            builder.Services.AddScoped<ITokenService, TokenService>();
+            builder.Services.AddScoped<IPortfolioRepository, PortfolioRepository>();
+            builder.Services.AddHttpClient<IFMPServices, FMPService>();
+
+            // Controllers
+            builder.Services.AddControllers().AddNewtonsoftJson(options =>
+            {
+                options.SerializerSettings.ReferenceLoopHandling =
+                    Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+            });
+
+            // Swagger
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
-
             builder.Services.AddSwaggerGen(option =>
             {
-                option.SwaggerDoc("v1", new OpenApiInfo { Title = "Demo API", Version = "v1" });
+                option.SwaggerDoc("v1", new OpenApiInfo { Title = "Financial API", Version = "v1" });
                 option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     In = ParameterLocation.Header,
@@ -36,77 +105,46 @@ namespace FinacialBackend
                     Scheme = "Bearer"
                 });
                 option.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
                 {
-                    Type=ReferenceType.SecurityScheme,
-                    Id="Bearer"
-                }
-            },
-            new string[]{}
-        }
-    });
-            });
-
-            builder.Services.AddDbContext<Data.ApplicationDBContext>(options =>
-            {
-                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
-            });
-
-            builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
-            {
-                options.Password.RequireDigit = true;
-                options.Password.RequireLowercase = true;
-                options.Password.RequireUppercase = true;
-                options.Password.RequireNonAlphanumeric = true;
-                options.Password.RequiredLength = 12;
-            })
-                .AddEntityFrameworkStores<ApplicationDBContext>();
-
-            builder.Services.AddAuthentication(options =>
-            {        
-                options.DefaultAuthenticateScheme =
-                options.DefaultChallengeScheme =
-                options.DefaultForbidScheme =
-                options.DefaultSignInScheme =
-                options.DefaultSignOutScheme = JwtBearerDefaults.AuthenticationScheme;
- 
-            }).AddJwtBearer(options =>
-            {
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidIssuer = builder.Configuration["JWT:Issuer"],
-                    ValidateAudience = true,
-                    ValidAudience = builder.Configuration["JWT:Audience"],
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(
-                        System.Text.Encoding.UTF8.GetBytes(builder.Configuration["JWT:SigningKey"])
-                        )
-                };
-            });
-
-
-
-            builder.Services.AddScoped<IStockRepository, StockRepository>();
-            builder.Services.AddScoped<ICommentRepository, CommentRepository>();
-            builder.Services.AddScoped<ITokenService, TokenService>();
-            builder.Services.AddScoped<IPortfolioRepository, PortfolioRepository>();
-            builder.Services.AddScoped<IFMPServices, FMPService>();
-            builder.Services.AddHttpClient<IFMPServices, FMPService>();
-
-
-            builder.Services.AddControllers().AddNewtonsoftJson(options =>
-            {
-               options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore; 
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        new string[] {}
+                    }
+                });
             });
 
             var app = builder.Build();
-                
-            // Configure the HTTP request pipeline.
+
+            // ========================
+            // Database Connection Check
+            // ========================
+            using (var scope = app.Services.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDBContext>();
+
+                try
+                {
+                    if (dbContext.Database.CanConnect())
+                        Console.WriteLine("? Database connection successful!");
+                    else
+                        Console.WriteLine("? Database connection failed!");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"? Error while connecting to database: {ex.Message}");
+                }
+            }
+
+            // ========================
+            // Middleware Pipeline
+            // ========================
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -115,17 +153,16 @@ namespace FinacialBackend
 
             app.UseHttpsRedirection();
 
-            app.UseCors(x => x.AllowAnyMethod()
-                        .AllowAnyHeader()
-                        .AllowCredentials()
-                        //.withOrigins("https://localhost:44361") Note this is for when you deploy it is where you wil set your actual domain
-                       .SetIsOriginAllowed(origin => true) );
+            app.UseCors(x => x
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials()
+                .SetIsOriginAllowed(origin => true));
 
-            app.UseAuthentication() ;
-
+            app.UseAuthentication();
             app.UseAuthorization();
 
-            app.MapControllers();
+            app.MapControllers(); 
 
             app.Run();
         }

@@ -64,7 +64,7 @@ namespace FinacialBackend.Controllers
 
                 var appUser = new AppUser
                 {
-                    UserName = registerDto.Username,
+                    UserName = registerDto.Username.ToLower(),
                     Email = registerDto.EmailAddress,
                 };
                     

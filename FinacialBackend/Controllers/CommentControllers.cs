@@ -36,7 +36,7 @@ namespace FinacialBackend.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            var comments = await _commentRepo.GetAllAsync( queryObject);
+            var comments = await _commentRepo.GetAllAsync( queryObject);  
              
             var commentDto = comments.Select(s => s.ToCommentDto());
 
@@ -47,7 +47,7 @@ namespace FinacialBackend.Controllers
         public async Task<IActionResult> GetById([FromRoute] int id)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                return BadRequest(ModelState); 
 
             var comment = await _commentRepo.GetByIdAsync(id);
                
@@ -61,7 +61,7 @@ namespace FinacialBackend.Controllers
         [HttpPost("symbol/{symbol:alpha}")]
         // [Route("{stockId:int}")] when you are finding by stockId and you are not dataSeeding from external api
         [Authorize] // ensure only logged-in users can comment
-        public async Task<IActionResult> Create([FromRoute] string symbol, CreateCommentDto commentDto)
+        public async Task<IActionResult> Create([FromRoute] string symbol, [FromBody]CreateCommentDto commentDto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
