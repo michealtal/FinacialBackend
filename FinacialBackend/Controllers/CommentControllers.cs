@@ -41,12 +41,12 @@ namespace FinacialBackend.Controllers
             var commentDto = comments.Select(s => s.ToCommentDto());
 
             return Ok(commentDto);
-        }
+        } 
 
-        [HttpGet("{id:int}")]
+        [HttpGet("{id:int}")]  
         public async Task<IActionResult> GetById([FromRoute] int id)
         {
-            if (!ModelState.IsValid)
+            if (!ModelState.IsValid) 
                 return BadRequest(ModelState); 
 
             var comment = await _commentRepo.GetByIdAsync(id);
