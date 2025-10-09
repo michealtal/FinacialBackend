@@ -19,7 +19,7 @@ namespace FinacialBackend
 
             // ?? Log connection strings (debugging)
             foreach (var kv in builder.Configuration.GetSection("ConnectionStrings").GetChildren())
-            {
+            { 
                 Console.WriteLine($"==> Found connection string key={kv.Key}, value={kv.Value}");
             }
 
@@ -27,11 +27,17 @@ namespace FinacialBackend
             // Services Configuration
             // ========================
 
-            // DbContext
+            // DbContext original
+            //    builder.Services.AddDbContext<ApplicationDBContext>(options =>
+            //    {
+            //       options.UseSqlite("Data Source=finshark.db"));
+            //    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+            //});
+
+            //DbContext Testing with Render
             builder.Services.AddDbContext<ApplicationDBContext>(options =>
-            {
-                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
-            });
+           options.UseSqlite("Data Source=finshark.db"));
+
 
             // Identity
             builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
