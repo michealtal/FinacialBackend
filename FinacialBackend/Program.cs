@@ -10,7 +10,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 namespace FinacialBackend
-{
+{   
     public class Program
     {
         public static void Main(string[] args)
@@ -157,7 +157,7 @@ namespace FinacialBackend
                 app.UseSwaggerUI();
             }
 
-            app.UseHttpsRedirection();
+            app.UseHttpsRedirection(); 
 
             app.UseCors(x => x
                 .AllowAnyMethod()
