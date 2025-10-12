@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
+
 namespace FinacialBackend
 {   
     public class Program
@@ -28,15 +29,18 @@ namespace FinacialBackend
             // ========================
 
             // DbContext original
-            //    builder.Services.AddDbContext<ApplicationDBContext>(options =>
-            //    {
-            //       options.UseSqlite("Data Source=finshark.db"));
+            //        builder.Services.AddDbContext<ApplicationDBContext>(options =>
+            //        {
             //    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
             //});
 
-            //DbContext Testing with Render
+            //Postgres render database
             builder.Services.AddDbContext<ApplicationDBContext>(options =>
-           options.UseSqlite("Data Source=finshark.db"));
+            options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+            //DbContext Testing with Render sql lite
+            // builder.Services.AddDbContext<ApplicationDBContext>(options =>
+            //options.UseSqlite("DefaultConnection"));
 
 
             // Identity
@@ -126,7 +130,17 @@ namespace FinacialBackend
                 });
             });
 
+            
+
             var app = builder.Build();
+
+            // automatically add migration in render after update
+            using (var scope = app.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<ApplicationDBContext>();
+                db.Database.Migrate();
+            }
+
 
             // ========================
             // Database Connection Check
@@ -163,7 +177,7 @@ namespace FinacialBackend
                 .AllowAnyMethod()
                 .AllowAnyHeader()
                 .AllowCredentials()
-                .SetIsOriginAllowed(origin => true));
+                .SetIsOriginAllowed(origin => true)); 
 
             app.UseAuthentication();
             app.UseAuthorization();

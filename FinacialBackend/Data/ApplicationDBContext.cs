@@ -7,7 +7,7 @@ namespace FinacialBackend.Data
     public class ApplicationDBContext : IdentityDbContext<AppUser> // with Identity  (DbContext) without identity
     {
        public ApplicationDBContext(DbContextOptions<ApplicationDBContext> dbContextoptions) : base(dbContextoptions)
-       {
+       { 
           
         }
         public DbSet<Stock> Stocks { get; set; }
