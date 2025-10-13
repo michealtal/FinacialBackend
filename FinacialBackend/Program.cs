@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using DotNetEnv;
 
 
 namespace FinacialBackend
@@ -34,9 +35,17 @@ namespace FinacialBackend
             //    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
             //});
 
-            //Postgres render database
+            // Load environment variables from .env
+            DotNetEnv.Env.Load();
+            Console.WriteLine($"Loaded connection string: {Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")}");
+
+
+            // Get the connection string from environment variable
+            var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
+
+            // Register DbContext using the env variable directly
             builder.Services.AddDbContext<ApplicationDBContext>(options =>
-            options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+                options.UseNpgsql(connectionString));
 
             //DbContext Testing with Render sql lite
             // builder.Services.AddDbContext<ApplicationDBContext>(options =>
@@ -141,7 +150,7 @@ namespace FinacialBackend
                 db.Database.Migrate();
             }
 
-
+ 
             // ========================
             // Database Connection Check
             // ========================
