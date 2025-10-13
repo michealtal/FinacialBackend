@@ -1,3 +1,4 @@
+using DotNetEnv;
 using FinacialBackend.Data;
 using FinacialBackend.Interfaces;
 using FinacialBackend.Model;
@@ -8,7 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using DotNetEnv;
+using System.Text;
 
 
 namespace FinacialBackend
@@ -65,25 +66,50 @@ namespace FinacialBackend
 
             // Authentication & JWT
             //builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme) if you want it to get from cookies 
-            builder.Services.AddAuthentication(options =>
+
+            var jwtKey = builder.Configuration["JWT:SigningKey"] ?? Environment.GetEnvironmentVariable("JWT__SigningKey");
+            var jwtIssuer = builder.Configuration["JWT:Issuer"] ?? Environment.GetEnvironmentVariable("JWT__Issuer");
+            var jwtAudience = builder.Configuration["JWT:Audience"] ?? Environment.GetEnvironmentVariable("JWT__Audience");
+
+            if (string.IsNullOrEmpty(jwtKey))
             {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-                .AddJwtBearer(options =>
-                {
-                    options.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuer = true,
-                        ValidIssuer = builder.Configuration["JWT:Issuer"],
-                        ValidateAudience = true,
-                        ValidAudience = builder.Configuration["JWT:Audience"],
-                        ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(
-                            System.Text.Encoding.UTF8.GetBytes(builder.Configuration["JWT:SigningKey"])
-                        )
-                    };
-                });
+                Console.WriteLine("JWT SigningKey is missing! Check environment variables on Render.");
+            }
+                builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = builder.Configuration["JWT:Issuer"],
+                ValidAudience = builder.Configuration["JWT:Audience"],
+                IssuerSigningKey = new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(builder.Configuration["JWT:SigningKey"]))
+            };
+        });
+
+            //builder.Services.AddAuthentication(options =>
+            //{
+            //    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            //    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            //})
+            //    .AddJwtBearer(options =>
+            //    {
+            //        options.TokenValidationParameters = new TokenValidationParameters
+            //        {
+            //            ValidateIssuer = true,
+            //            ValidIssuer = builder.Configuration["JWT:Issuer"],
+            //            ValidateAudience = true,
+            //            ValidAudience = builder.Configuration["JWT:Audience"],
+            //            ValidateIssuerSigningKey = true,
+            //            IssuerSigningKey = new SymmetricSecurityKey(
+            //                System.Text.Encoding.UTF8.GetBytes(builder.Configuration["JWT:SigningKey"])
+            //            )
+            //        };
+            //    });
 
             builder.Services.ConfigureApplicationCookie(options =>
             {
