@@ -176,15 +176,17 @@ namespace FinacialBackend
             //  CORS: Allow all origins for testing
             builder.Services.AddCors(options =>
             {
-                options.AddPolicy("AllowAll", policy =>
+                options.AddPolicy("AllowFrontend", policy =>
                 {
-                    policy
-                        .AllowAnyOrigin()
-                        .AllowAnyHeader()
-                        .AllowAnyMethod();
+                    policy.WithOrigins(
+                        "http://localhost:5173",
+                        "https://finacialfrontend.onrender.com" // Replace with your actual frontend render URL
+                    )
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials();
                 });
             });
-
 
 
             var app = builder.Build();
@@ -233,7 +235,7 @@ namespace FinacialBackend
             //    .AllowCredentials()
             //    .SetIsOriginAllowed(origin => true));
 
-            app.UseCors("AllowAll");
+            app.UseCors("AllowFrontend");
 
             app.UseHttpsRedirection();
 
