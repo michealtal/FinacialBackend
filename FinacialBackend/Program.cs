@@ -139,6 +139,18 @@ namespace FinacialBackend
                 });
             });
 
+            //  CORS: Allow all origins for testing
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll", policy =>
+                {
+                    policy
+                        .AllowAnyOrigin()
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
+                });
+            });
+
 
 
             var app = builder.Build();
@@ -182,11 +194,13 @@ namespace FinacialBackend
 
             app.UseHttpsRedirection();
 
-            app.UseCors(x => x
-                .AllowAnyMethod()
-                .AllowAnyHeader()
-                .AllowCredentials()
-                .SetIsOriginAllowed(origin => true));
+            //app.UseCors(x => x
+            //    .AllowAnyMethod()
+            //    .AllowAnyHeader()
+            //    .AllowCredentials()
+            //    .SetIsOriginAllowed(origin => true));
+
+            app.UseCors("AllowAll");
 
             app.UseAuthentication();
             app.UseAuthorization();
