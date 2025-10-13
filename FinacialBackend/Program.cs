@@ -12,7 +12,7 @@ using DotNetEnv;
 
 
 namespace FinacialBackend
-{   
+{
     public class Program
     {
         public static void Main(string[] args)
@@ -21,7 +21,7 @@ namespace FinacialBackend
 
             // ?? Log connection strings (debugging)
             foreach (var kv in builder.Configuration.GetSection("ConnectionStrings").GetChildren())
-            { 
+            {
                 Console.WriteLine($"==> Found connection string key={kv.Key}, value={kv.Value}");
             }
 
@@ -139,7 +139,7 @@ namespace FinacialBackend
                 });
             });
 
-            
+
 
             var app = builder.Build();
 
@@ -150,7 +150,7 @@ namespace FinacialBackend
                 db.Database.Migrate();
             }
 
- 
+
             // ========================
             // Database Connection Check
             // ========================
@@ -180,18 +180,26 @@ namespace FinacialBackend
                 app.UseSwaggerUI();
             }
 
-            app.UseHttpsRedirection(); 
+            app.UseHttpsRedirection();
 
-            app.UseCors(x => x
-                .AllowAnyMethod()
-                .AllowAnyHeader()
-                .AllowCredentials()
-                .SetIsOriginAllowed(origin => true)); 
+            // ===== CORS setup for testing (allow any frontend temporarily) =====
+            // Note: JWT should now be sent in Authorization header, not cookies
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll", policy =>
+                {
+                    policy.AllowAnyOrigin()
+                          .AllowAnyHeader()
+                          .AllowAnyMethod();
+                });
+            });
+
+            app.UseCors("AllowAll");
 
             app.UseAuthentication();
             app.UseAuthorization();
 
-            app.MapControllers(); 
+            app.MapControllers();
 
             app.Run();
         }
