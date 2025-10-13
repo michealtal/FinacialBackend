@@ -182,19 +182,11 @@ namespace FinacialBackend
 
             app.UseHttpsRedirection();
 
-            // ===== CORS setup for testing (allow any frontend temporarily) =====
-            // Note: JWT should now be sent in Authorization header, not cookies
-            builder.Services.AddCors(options =>
-            {
-                options.AddPolicy("AllowAll", policy =>
-                {
-                    policy.AllowAnyOrigin()
-                          .AllowAnyHeader()
-                          .AllowAnyMethod();
-                });
-            });
-
-            app.UseCors("AllowAll");
+            app.UseCors(x => x
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials()
+                .SetIsOriginAllowed(origin => true));
 
             app.UseAuthentication();
             app.UseAuthorization();
