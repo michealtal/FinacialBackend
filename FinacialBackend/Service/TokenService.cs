@@ -21,7 +21,8 @@ namespace FinacialBackend.Service
             var claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
-                new Claim(JwtRegisteredClaimNames.GivenName, user.UserName)
+                new Claim(JwtRegisteredClaimNames.GivenName, user.UserName), // wrong
+                 new Claim(ClaimTypes.Name, user.UserName)//correct 
             };
 
             var creds = new SigningCredentials(_key, SecurityAlgorithms.HmacSha512Signature);

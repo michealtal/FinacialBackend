@@ -90,6 +90,11 @@ namespace FinacialBackend.Controllers
 
             // Get user from JWT token
             var username = User.GetUsername();
+            if (string.IsNullOrEmpty(username))
+            {
+                Console.WriteLine("JWT username missing");
+                return Unauthorized("User not found in token");
+            }
             var appUser = await _userManager.FindByNameAsync(username);
 
             if (appUser == null)
