@@ -67,6 +67,22 @@ namespace FinacialBackend
             // Authentication & JWT
             //builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme) if you want it to get from cookies 
 
+
+            //  CORS: Allow all origins for testing
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowFrontend", policy =>
+                {
+                    policy.WithOrigins(
+                        "http://localhost:5173",
+                        "https://finacialfrontend.onrender.com" // Replace with your actual frontend render URL
+                    )
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials();
+                });
+            });
+
             var jwtKey = builder.Configuration["JWT:SigningKey"] ?? Environment.GetEnvironmentVariable("JWT__SigningKey");
             var jwtIssuer = builder.Configuration["JWT:Issuer"] ?? Environment.GetEnvironmentVariable("JWT__Issuer");
             var jwtAudience = builder.Configuration["JWT:Audience"] ?? Environment.GetEnvironmentVariable("JWT__Audience");
@@ -115,18 +131,20 @@ namespace FinacialBackend
             //            )
             //        };
             //    });
+            
+            //for cookies authrntication
 
-            builder.Services.ConfigureApplicationCookie(options =>
-            {
-                options.LoginPath = "/account/login";
-                options.AccessDeniedPath = "/account/accessdenied";
+            //builder.Services.ConfigureApplicationCookie(options =>
+            //{
+            //    options.LoginPath = "/account/login";
+            //    options.AccessDeniedPath = "/account/accessdenied";
 
-                options.Events.OnRedirectToLogin = ctx =>
-                {
-                    ctx.Response.StatusCode = 401; // Instead of redirect
-                    return Task.CompletedTask;
-                };
-            });
+            //    options.Events.OnRedirectToLogin = ctx =>
+            //    {
+            //        ctx.Response.StatusCode = 401; // Instead of redirect
+            //        return Task.CompletedTask;
+            //    };
+            //});
 
 
             // Repositories & Services
@@ -173,20 +191,6 @@ namespace FinacialBackend
                 });
             });
 
-            //  CORS: Allow all origins for testing
-            builder.Services.AddCors(options =>
-            {
-                options.AddPolicy("AllowFrontend", policy =>
-                {
-                    policy.WithOrigins(
-                        "http://localhost:5173",
-                        "https://finacialfrontend.onrender.com" // Replace with your actual frontend render URL
-                    )
-                    .AllowAnyHeader()
-                    .AllowAnyMethod()
-                    .AllowCredentials();
-                });
-            });
 
 
             var app = builder.Build();
