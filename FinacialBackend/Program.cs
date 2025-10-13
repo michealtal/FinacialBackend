@@ -75,8 +75,13 @@ namespace FinacialBackend
             {
                 Console.WriteLine("JWT SigningKey is missing! Check environment variables on Render.");
             }
-                builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-        .AddJwtBearer(options =>
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+    .AddJwtBearer(options =>
         {
             options.TokenValidationParameters = new TokenValidationParameters
             {
@@ -113,6 +118,9 @@ namespace FinacialBackend
 
             builder.Services.ConfigureApplicationCookie(options =>
             {
+                options.LoginPath = "/account/login";
+                options.AccessDeniedPath = "/account/accessdenied";
+
                 options.Events.OnRedirectToLogin = ctx =>
                 {
                     ctx.Response.StatusCode = 401; // Instead of redirect
