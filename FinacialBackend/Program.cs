@@ -192,7 +192,6 @@ namespace FinacialBackend
                 app.UseSwaggerUI();
             }
 
-            app.UseHttpsRedirection();
 
             //app.UseCors(x => x
             //    .AllowAnyMethod()
@@ -201,6 +200,9 @@ namespace FinacialBackend
             //    .SetIsOriginAllowed(origin => true));
 
             app.UseCors("AllowAll");
+
+            app.UseHttpsRedirection();
+
 
             app.UseAuthentication();
             app.UseAuthorization();
