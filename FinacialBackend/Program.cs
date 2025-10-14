@@ -75,7 +75,7 @@ namespace FinacialBackend
                 {
                     policy.WithOrigins(
                         "http://localhost:5173",
-                        "https://finacialfrontend.onrender.com" // Replace with your actual frontend render URL
+                        "https://valuedge.onrender.com" // Replace with your actual frontend render URL
                     )
                     .AllowAnyHeader()
                     .AllowAnyMethod()
